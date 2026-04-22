@@ -7,8 +7,8 @@ on:
 env:
     AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
     AWS_REGION: ${{ secrets.AWS_REGION }}
-    S3_BUCKET: ${{ secrets.S3_BUCKET }}
-    CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+    S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}                           # example: arch-static-ucheor
+    CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}   # example: EV90MMUPTYGLH
     
 
 jobs:
@@ -27,10 +27,14 @@ jobs:
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Debug bucket name
+        run: |
+            echo "Bucket is: '${{ env.S3_BUCKET_NAME }}'"
 
       - name: Deploy to S3
         run: |
-            aws s3 sync ./arch s3://${{ env.S3_BUCKET }} \
+            aws s3 sync ./arch s3://${{ env.S3_BUCKET_NAME }} \
             --delete
 
       - name: Invalidate CloudFront
