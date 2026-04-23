@@ -1,6 +1,5 @@
 # Deploy a Static Website on AWS S3 + CloudFront Using GitHub Actions & OIDC  
 ## A step-by-step guide to a fully automated, serverless CI/CD pipeline — no AWS credentials stored in GitHub  
-## AWS  |  S3  |  CloudFront  |  GitHub Actions  |  OIDC  |  DevOps  
 
 ## Introduction  
 Deploying a static website to AWS should be fast, repeatable, and — most importantly — secure. In this guide I walk through every step needed to host a static site on Amazon S3 served through CloudFront as a CDN, and then wire up an automated CI/CD pipeline with GitHub Actions that uses OIDC (OpenID Connect) so no long-lived AWS credentials ever touch your repository.  
