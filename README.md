@@ -301,7 +301,7 @@ Here is a quick recap of what we built:
 This architecture is fully serverless, costs very little at low traffic, and follows AWS security best practices by eliminating long-lived credentials. Enjoy your new automated deployment pipeline!  
 
 
-Found this helpful? Like and repost to share with your network. Drop any questions in the comments!   
+Found this helpful? Like and repost to share with your network. Let me know if you have any questions!   
 
 ---
 
