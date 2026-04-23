@@ -4,12 +4,12 @@
 ## Introduction  
 Deploying a static website to AWS should be fast, repeatable, and — most importantly — secure. In this guide I walk through every step needed to host a static site on Amazon S3 served through CloudFront as a CDN, and then wire up an automated CI/CD pipeline with GitHub Actions that uses OIDC (OpenID Connect) so no long-lived AWS credentials ever touch your repository.  
 
-By the end of this tutorial you will have:  
+**By the end of this tutorial you will have:**  
 •	An S3 bucket that stores your site and is not publicly accessible on its own  
 •	A CloudFront distribution that serves your content globally over HTTPS  
 •	An IAM OIDC identity provider and role that lets GitHub Actions assume AWS permissions on demand  
 •	A GitHub Actions workflow that automatically syncs your site to S3 and invalidates the CloudFront cache on every push to main  
-• A serverless architechture static website using AWS S3 bucket and AWS CloudFront as Content Delivery Network (CDN)
+• A serverless architecture static website using AWS S3 bucket and AWS CloudFront as Content Delivery Network (CDN)
 
 **Prerequisites**  
 •	An AWS account with permissions to create S3 buckets, CloudFront distributions, and IAM roles  
@@ -128,8 +128,8 @@ In the AWS Console, open IAM and click Identity providers in the left menu.
 ---
 
 Click Add provider. Select OpenID Connect as the provider type. Enter the following values:   
-•	Provider URL: https://token.actions.githubusercontent.com   
-•	Audience: sts.amazonaws.com   
+•	**Provider URL:** https://token.actions.githubusercontent.com   
+•	**Audience:** sts.amazonaws.com   
 
 ![IAM Add Identity provider screen with OpenID Connect selected and the GitHub provider URL and audience filled in](images/13_add_identity_provider.png)   
 
@@ -162,7 +162,7 @@ Click Next to proceed to Add permissions. Search for and attach the following tw
 •	**AmazonS3FullAccess** — allows the workflow to sync files to the S3 bucket   
 •	**CloudFrontFullAccess** — allows the workflow to create CloudFront cache invalidations   
 
-**Note:** Feel free to use custom policies to implement least priveledge and tighter control.   
+**Note:** Feel free to use custom policies to implement least privilege and tighter control.   
 
 ![IAM Create role Name review screen showing both AmazonS3FullAccess and CloudFrontFullAccess policies attached](images/17_add_permissions.png)   
 
@@ -185,7 +185,7 @@ In your GitHub repository, go to Settings > Security and quality > Secrets and v
 
 •	**AWS_REGION** — the AWS region where your S3 bucket lives (e.g. us-east-1)  
 •	**AWS_ROLE_ARN** — the full ARN of the IAM role created in Step 3 (e.g. arn:aws:iam::123456789012:role/GitHub_OIDC_S3_CloudFront_Full)  
-•	**S3_BUCKET_NAME** — the name of your S3 bucket (e.g. my-static-site)  
+•	**S3_BUCKET_NAME** — the name of your S3 bucket (e.g. arch-static-ucheor)  
 •	**CLOUDFRONT_DISTRIBUTION_ID** — the distribution ID from Step 2 (e.g. EV90MMUPTPGLH)  
 
 ![GitHub repository Settings > Secrets and variables > Actions screen showing all four secrets configured](images/19_set_up_GitHub_Actions_secrets.png)  
@@ -194,7 +194,7 @@ In your GitHub repository, go to Settings > Security and quality > Secrets and v
 
 **Tip:** Find your CloudFront Distribution ID on the distribution detail page in the AWS Console — it is the alphanumeric string shown next to the distribution domain name.
 
-## Step 5 — Deploy  
+## Step 5 — Deploy to AWS S3 Bucket
 
 With the infrastructure in place and the secrets configured, you are ready to trigger your first deployment. The GitHub Actions workflow will:  
 -	Check out the repository code
@@ -202,7 +202,7 @@ With the infrastructure in place and the secrets configured, you are ready to tr
 -	Sync your website files to S3 using aws s3 sync
 -	Invalidate the CloudFront cache so visitors immediately see the latest version
 
-**5.1 — Workflow file structure**
+**5.1 — Workflow file structure**  
 Your repository should contain a workflow file at .github/workflows/arch.yml (or similar). 
 
 ```
@@ -257,10 +257,10 @@ jobs:
 At a minimum the workflow needs the following permissions block to enable OIDC token generation:
 
 permissions:  
-  id-token: write   # Required for OIDC  
+  id-token: write   # Required for OIDC   
   contents: read  
 
-The deploy step will call aws sts assume-role-with-web-identity (handled automatically by the configure-aws-credentials action) and then run aws s3 sync and aws cloudfront create-invalidation using the values from your secrets.  
+The deploy step will call **aws sts assume-role-with-web-identity** (handled automatically by the configure-aws-credentials action) and then run **aws s3 sync** and AWS CloudFront create-invalidation using the values from your secrets.  
 
 **5.2 — Push to GitHub**  
 Add all your files, commit, and push to the main branch. This will trigger the workflow automatically.  
@@ -273,7 +273,10 @@ Add all your files, commit, and push to the main branch. This will trigger the w
 
 ---
 
-Navigate to the Actions tab in your GitHub repository to watch the workflow run. Once it turns green, open your CloudFront distribution domain name in a browser — your static site is live! You might need to give it a few minutes to give the distribution time to get deployed to all edge locations.
+Navigate to the Actions tab in your GitHub repository to watch the workflow run. Once it turns green, open your CloudFront distribution domain name in a browser — your static site is live! 
+
+CloudFront caches content from your private S3 bucket at edge locations worldwide, delivering it quickly to users. You might need to give it a few minutes to give the distribution time to get deployed to all edge locations before accessing it on the browser.
+
 
 ![Static website is up and running](images/21_website_up.png)
 
@@ -281,11 +284,11 @@ Navigate to the Actions tab in your GitHub repository to watch the workflow run.
 
 **Tip:** If the workflow fails with a credential error, double-check that the AWS_ROLE_ARN secret matches exactly and that the IAM trust policy contains your repository name. A common mistake is a trailing slash or incorrect casing in the repo path.  
 
-**5.2 — Clean Up**
+**5.3 — Clean Up**
 
 Congratulations on getting to this point. If you are done with your AWS resources, remember to circle back and delete resources you no longer need. This includes the S3 bucket, IAM roles, and Cloudfront Distribution. 
 
-**Note:** that CloudFront distributions need to be disabled first before deleting. If your CloudFront distribution is a monthly subscription, you will need to disable it first and then delete at the end of your biling cycle. Pay-as-you-go distributions can be deleted whenever you wish. 
+**Note:** CloudFront distributions need to be disabled first before deleting. If your CloudFront distribution is a monthly subscription, you will need to disable it first and then delete at the end of your biling cycle. Pay-as-you-go distributions can be deleted whenever you wish. 
 
 ## Summary  
 Here is a quick recap of what we built:  
