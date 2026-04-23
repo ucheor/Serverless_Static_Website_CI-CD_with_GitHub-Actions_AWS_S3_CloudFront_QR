@@ -108,9 +108,13 @@ Save the changes. CloudFront will automatically update the S3 bucket policy to a
 
 ![S3 bucket Permissions tab showing the CloudFront bucket policy that was automatically written](images/11_bucket_permissions_updated.png)   
 
+You can also manually edit the bucket policy and adjust as needed. 
+
 ---
 
-**Tip:** Keep Block all public access ON in S3. The bucket policy added by CloudFront uses a condition that restricts access to your specific distribution ARN, which is the secure approach.   
+**Tip:** Keep Block all public access ON in S3. The bucket policy added by CloudFront uses a condition that restricts access to your specific distribution ARN, which is the secure approach. 
+
+Although we are deploying a static website with public access, there is no need to keep S3 bucket open to public access in this situation since all traffic will be through our CloudFront distribution. 
 
 ## Step 3 — Set Up the IAM OIDC Identity Provider & Role   
 Instead of generating a long-lived AWS Access Key and Secret and storing them in GitHub, we use OpenID Connect (OIDC). GitHub Actions can mint a short-lived JWT token for each workflow run, and AWS STS exchanges that token for temporary credentials scoped to a specific IAM role. This means no static secrets, ever.   
@@ -145,10 +149,10 @@ Now that the identity provider exists, create an IAM role that GitHub Actions wi
 
 ---
 
-Click Create role. On the Select trusted entity screen, choose Web identity. From the Identity provider dropdown, select token.actions.githubusercontent.com. Set the Audience to sts.amazonaws.com. Then fill in:   
-•	GitHub organization: your GitHub username or org name   
-•	GitHub repository: the name of your static site repository (optional for improved access control)   
-•	GitHub branch: * (wildcard, or restrict to applicable branch for tighter control)    
+Click Create role. On the Select trusted entity screen, choose Web identity. From the Identity provider dropdown, select **token.actions.githubusercontent.com**. Set the Audience to **sts.amazonaws.com**. Then fill in:   
+•	**GitHub organization:** your GitHub username or org name   
+•	**GitHub repository:** the name of your static site repository (optional for improved access control)   
+•	**GitHub branch:** * (wildcard, or restrict to applicable branch for tighter control)    
 
 ![IAM Create role — Web identity selected with GitHub identity provider, audience, organization, and repository filled in](images/16_create_OIDC_role.png)   
 
@@ -156,8 +160,8 @@ Click Create role. On the Select trusted entity screen, choose Web identity. Fro
 
 **3.3 — Add permissions**   
 Click Next to proceed to Add permissions. Search for and attach the following two AWS managed policies:   
-•	AmazonS3FullAccess — allows the workflow to sync files to the S3 bucket   
-•	CloudFrontFullAccess — allows the workflow to create CloudFront cache invalidations   
+•	**AmazonS3FullAccess** — allows the workflow to sync files to the S3 bucket   
+•	**CloudFrontFullAccess** — allows the workflow to create CloudFront cache invalidations   
 
 **Note:** Feel free to use custom policies to implement least priveledge and tighter control.   
 
@@ -180,10 +184,10 @@ Your GitHub Actions workflow needs four pieces of information to deploy to AWS. 
 **4.1 — Add repository secrets**   
 In your GitHub repository, go to Settings > Security and quality > Secrets and variables > Actions. Click New repository secret and add each of the following:  
 
-•	AWS_REGION — the AWS region where your S3 bucket lives (e.g. us-east-1)  
-•	AWS_ROLE_ARN — the full ARN of the IAM role created in Step 3 (e.g. arn:aws:iam::123456789012:role/GitHub_OIDC_S3_CloudFront_Full)  
-•	S3_BUCKET_NAME — the name of your S3 bucket (e.g. my-static-site)  
-•	CLOUDFRONT_DISTRIBUTION_ID — the distribution ID from Step 2 (e.g. EV90MMUPTPGLH)  
+•	**AWS_REGION** — the AWS region where your S3 bucket lives (e.g. us-east-1)  
+•	**AWS_ROLE_ARN** — the full ARN of the IAM role created in Step 3 (e.g. arn:aws:iam::123456789012:role/GitHub_OIDC_S3_CloudFront_Full)  
+•	**S3_BUCKET_NAME** — the name of your S3 bucket (e.g. my-static-site)  
+•	**CLOUDFRONT_DISTRIBUTION_ID** — the distribution ID from Step 2 (e.g. EV90MMUPTPGLH)  
 
 ![GitHub repository Settings > Secrets and variables > Actions screen showing all four secrets configured](images/19_set_up_GitHub_Actions_secrets.png)  
 
@@ -287,14 +291,15 @@ Congratulations on getting to this point. If you are done with your AWS resource
 ## Summary  
 Here is a quick recap of what we built:  
 
-•	S3 Bucket — private storage for website files with versioning enabled  
-•	CloudFront Distribution — global CDN with a private origin policy and index.html as the default root object  
-•	IAM OIDC Identity Provider — trusted connection between GitHub Actions and AWS, no static keys required  
-•	IAM Role — scoped to your specific GitHub repository, with S3 and CloudFront permissions  
-•	GitHub Actions Secrets — four encrypted values that parameterise the deployment workflow  
-•	Automated CI/CD — every push to main syncs your site to S3 and invalidates the CloudFront cache  
+•	**AWS S3 Bucket** — private storage for website files with versioning enabled  
+•	**CloudFront Distribution** — global CDN with a private origin policy and index.html as the default root object  
+•	**IAM OIDC Identity Provider** — trusted connection between GitHub Actions and AWS, no static keys required  
+•	**IAM Role** — scoped to your specific GitHub repository, with S3 and CloudFront permissions  
+•	**GitHub Actions Secrets** — four encrypted values that parameterise the deployment workflow  
+•	**Automated CI/CD** — every push to main syncs your site to S3 and invalidates the CloudFront cache  
 
-This architecture is fully serverless, costs almost nothing at low traffic, and follows AWS security best practices by eliminating long-lived credentials. Enjoy your new automated deployment pipeline!  
+This architecture is fully serverless, costs very little at low traffic, and follows AWS security best practices by eliminating long-lived credentials. Enjoy your new automated deployment pipeline!  
+
 
 Found this helpful? Like and repost to share with your network. Drop any questions in the comments!   
 
